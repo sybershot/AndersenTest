@@ -1,9 +1,10 @@
 package main
 
 import (
-	json "encoding/json"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	rand2 "math/rand"
 	"net/http"
 	"time"
@@ -11,30 +12,35 @@ import (
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		_ = getNames(w, r)
+		_ = getNames(w)
 	})
-	_ = http.ListenAndServe(":80", nil)
+	log.Fatal(http.ListenAndServe(":80", nil))
 }
 
 var myClient = &http.Client{Timeout: 10 * time.Second}
 
-type ChildNames struct{
+type ChildNames struct {
 	Names []string `json:"names"`
 }
 
-func getNames(w http.ResponseWriter, r *http.Request) error {
+func getNames(w http.ResponseWriter) error {
 	req, err := myClient.Get("https://data.cityofnewyork.us/api/views/25th-nujf/rows.json?accessType=DOWNLOAD")
 
 	if err != nil {
-		return err
+		log.Panic(err)
 	}
 
 	defer req.Body.Close()
 
 	byteValue, _ := ioutil.ReadAll(req.Body)
 	var result map[string]interface{}
-	_ = json.Unmarshal([]byte(byteValue), &result)
-	delete(result, "meta") //We need only the resp.
+	err = json.Unmarshal([]byte(byteValue), &result)
+
+	if err != nil {
+		return err
+	}
+
+	delete(result, "meta") //We need only the data.
 
 	//All names go here! I have no idea how to work with the names directly, so ¯\_(ツ)_/¯, it's working at least.
 	var Names []string
@@ -62,6 +68,7 @@ func getNames(w http.ResponseWriter, r *http.Request) error {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return nil
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(payload)
 	return nil
