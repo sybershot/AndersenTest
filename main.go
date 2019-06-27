@@ -12,7 +12,7 @@ import (
 
 func main() {
 	http.HandleFunc("/", getNames)
-	log.Fatal(http.ListenAndServe(":80", nil))
+	log.Fatal(http.ListenAndServe(":3000", nil))
 }
 
 var myClient = &http.Client{Timeout: 10 * time.Second}
@@ -45,7 +45,7 @@ func getNames(w http.ResponseWriter, r *http.Request) {
 
 	//All names go here! I have no idea how to work with the names directly, so ¯\_(ツ)_/¯, it's working at least.
 	var Names []string
-	for k, v := range result {
+	for _, v := range result {
 		switch vv := v.(type) {
 		case []interface{}:
 			for _, u := range vv {
@@ -53,7 +53,7 @@ func getNames(w http.ResponseWriter, r *http.Request) {
 				Names = append(Names, currentName)
 			}
 		default:
-			fmt.Println(k, "is not a JSON resp!")
+			log.Panic("This JSON is not compatible!")
 		}
 	}
 
