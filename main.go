@@ -11,9 +11,7 @@ import (
 )
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		_ = getNames(w)
-	})
+	http.HandleFunc("/", getNames)
 	log.Fatal(http.ListenAndServe(":80", nil))
 }
 
@@ -23,7 +21,7 @@ type ChildNames struct {
 	Names []string `json:"names"`
 }
 
-func getNames(w http.ResponseWriter) error {
+func getNames(w http.ResponseWriter, r *http.Request) {
 	req, err := myClient.Get("https://data.cityofnewyork.us/api/views/25th-nujf/rows.json?accessType=DOWNLOAD")
 
 	if err != nil {
@@ -32,12 +30,15 @@ func getNames(w http.ResponseWriter) error {
 
 	defer req.Body.Close()
 
-	byteValue, _ := ioutil.ReadAll(req.Body)
+	byteValue, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		log.Panic(err)
+	}
 	var result map[string]interface{}
 	err = json.Unmarshal([]byte(byteValue), &result)
 
 	if err != nil {
-		return err
+		log.Panic(err)
 	}
 
 	delete(result, "meta") //We need only the data.
@@ -66,10 +67,12 @@ func getNames(w http.ResponseWriter) error {
 	payload, err := json.Marshal(resp)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return nil
+		log.Panic(err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(payload)
-	return nil
+	_, err = w.Write(payload)
+	if err != nil {
+		log.Panic(err)
+	}
 }
