@@ -11,4 +11,4 @@ Then launch the outbut Build.exe (for windows) using command line
 ```
 go main.exe
 ```
-The server will be set up on **localhost:80** and the response will be sent there.
+The server will be set up on **localhost:3000** and the response will be sent there.
