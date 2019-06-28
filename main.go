@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -11,8 +12,12 @@ import (
 )
 
 func main() {
+	port := flag.String("p", "3000", "Sets the port for server")
+	flag.Parse()
 	http.HandleFunc("/", getNames)
-	log.Fatal(http.ListenAndServe(":3000", nil))
+	log.Println("Server is starting on port", *port)
+	log.Fatal(http.ListenAndServe(":"+*port, nil))
+
 }
 
 var myClient = &http.Client{Timeout: 10 * time.Second}
